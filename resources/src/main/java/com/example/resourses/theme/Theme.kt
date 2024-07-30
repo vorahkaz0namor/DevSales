@@ -26,7 +26,8 @@ data class BusinessColors(
     val black: Color = Color.Black,
     val color43464F: Color = Color(0xFF43464F),
     val colorF3F2F3: Color = Color(0xFFF3F2F3),
-    val colorB0DAFA: Color = Color(0xFFB0DAFA)
+    val colorB0DAFA: Color = Color(0xFFB0DAFA),
+    val color664FA4: Color = Color(0xFF664FA4),
 )
 
 private val businessColors = BusinessColors()

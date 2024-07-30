@@ -14,3 +14,4 @@ val TwentyDp = 20.dp
 val TwentyTwoSp = 22.sp
 val FiftySixDp = 56.dp
 val EightyFourDp = 84.dp
+val OneHundredFiftySixDp = 106.dp

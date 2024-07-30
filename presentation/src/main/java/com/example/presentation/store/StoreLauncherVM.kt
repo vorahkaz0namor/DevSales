@@ -1,6 +1,5 @@
 package com.example.presentation.store
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.Resource
@@ -53,9 +52,14 @@ class StoreLauncherVM @Inject constructor(
         _activeProduct.value = null
     }
 
-    fun saveProduct(product: Product) {
+    fun saveProduct(newAmount: Int) {
         viewModelScope.launch {
-            useCase.saveProduct(product)
+            activeProduct.value?.let { product ->
+                useCase.saveProduct(
+                    product.copy(amount = newAmount)
+                )
+            }
+            closeEditDialog()
         }
     }
 
@@ -69,9 +73,12 @@ class StoreLauncherVM @Inject constructor(
         _activeProduct.value = null
     }
 
-    fun deleteProduct(product: Product) {
+    fun deleteProduct() {
         viewModelScope.launch {
-            useCase.deleteProduct(product)
+            activeProduct.value?.let { product ->
+                useCase.deleteProduct(product)
+            }
+            closeDeleteDialog()
         }
     }
 
@@ -80,7 +87,6 @@ class StoreLauncherVM @Inject constructor(
             useCase.getAllProducts().fetchingData { productsFlow ->
                 productsFlow.mapLatest { productsFromFlow ->
                     _products.value = productsFromFlow
-                    Log.d("PRODUCTS HAS LOADED", "${productsFromFlow.size}")
                 }
                     .stateIn(this)
             }

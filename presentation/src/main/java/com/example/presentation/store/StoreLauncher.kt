@@ -77,13 +77,14 @@ internal fun StoreLauncherRoute(
     val products by storeViewModel.products.collectAsStateWithLifecycle()
     val openEditDialog by storeViewModel.openEditDialog.collectAsStateWithLifecycle()
     val openDeleteDialog by storeViewModel.openDeleteDialog.collectAsStateWithLifecycle()
+    val activeProductCurrentAmount by storeViewModel.activeProduct.collectAsStateWithLifecycle()
     val callbackState = CallbackState(
         openEditDialog = { storeViewModel.openEditDialog(it) },
         openDeleteDialog = { storeViewModel.openDeleteDialog(it) },
         closeEditDialog = { storeViewModel.closeEditDialog() },
         closeDeleteDialog = { storeViewModel.closeDeleteDialog() },
         saveProduct = { storeViewModel.saveProduct(it) },
-        deleteProduct = { storeViewModel.deleteProduct(it) }
+        deleteProduct = { storeViewModel.deleteProduct() }
     )
 
     storeViewModel.storeState
@@ -93,6 +94,7 @@ internal fun StoreLauncherRoute(
                 products = products,
                 openEditDialog = openEditDialog,
                 openDeleteDialog = openDeleteDialog,
+                currentAmount = activeProductCurrentAmount?.amount ?: 0,
                 callbackState = callbackState
             )
         }
@@ -103,11 +105,23 @@ private fun StoreLauncherScreen(
     products: List<Product> = emptyList(),
     openEditDialog: Boolean = false,
     openDeleteDialog: Boolean = false,
+    currentAmount: Int = 0,
     callbackState: CallbackState = CallbackState()
 ) {
     when {
-        openEditDialog -> {}
-        openDeleteDialog -> {}
+        openEditDialog -> {
+            EditDialog(
+                currentAmount = currentAmount,
+                onDismissRequest = callbackState.closeEditDialog,
+                saveProduct = callbackState.saveProduct
+            )
+        }
+        openDeleteDialog -> {
+            DeleteDialog(
+                onDismissRequest = callbackState.closeDeleteDialog,
+                deleteProduct = callbackState.deleteProduct
+            )
+        }
     }
 
     Column(
