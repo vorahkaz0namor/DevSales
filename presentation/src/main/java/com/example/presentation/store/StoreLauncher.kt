@@ -137,16 +137,17 @@ private fun StoreLauncherScreen(
         var filteredProducts by remember {
             mutableStateOf(products)
         }
+        var inputText by remember {
+            mutableStateOf("")
+        }
         val scope = rememberCoroutineScope()
         val searchRequest = { text: String ->
             scope.launch {
+                inputText = text
                 filteredProducts =
-                  if (text.isNotBlank()) {
-                        filteredProducts.filter {
-                            it.name.contains(other = text, ignoreCase = true)
-                        }
-                    } else
-                          products
+                    products.filter {
+                        it.name.contains(other = text, ignoreCase = true)
+                    }
             }
             Unit
         }
@@ -185,7 +186,13 @@ private fun StoreLauncherScreen(
                 vertical = TenDp
             )
         ) {
-            items(items = filteredProducts) { item ->
+            items(
+                items =
+                if (inputText.isNotBlank())
+                    filteredProducts
+                else
+                    products
+            ) { item ->
                 ItemCard(
                     item = item,
                     onEditClick = { callbackState.openEditDialog(item) },
