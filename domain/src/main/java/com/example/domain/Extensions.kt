@@ -5,7 +5,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
-inline fun <T> Resource<T>.onSuccess(action: (value: T?) -> Unit): Resource<T> {
+inline fun <T> Resource<T>.onSuccess(action: (value: T) -> Unit): Resource<T> {
     if (this is Resource.Success) action(this.data)
     return this
 }

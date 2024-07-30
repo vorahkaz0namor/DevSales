@@ -1,5 +1,6 @@
 package com.example.resourses.theme
 
+import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -8,7 +9,32 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
+
+@Stable
+data class BusinessColors(
+    val transparent: Color = Color.Transparent,
+    val white: Color = Color.White,
+    val black: Color = Color.Black,
+    val color43464F: Color = Color(0xFF43464F),
+    val colorF3F2F3: Color = Color(0xFFF3F2F3),
+    val colorB0DAFA: Color = Color(0xFFB0DAFA)
+)
+
+private val businessColors = BusinessColors()
+
+val MaterialTheme.colors: BusinessColors
+    @Composable
+    @ReadOnlyComposable
+    get() = staticCompositionLocalOf { businessColors }.current
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -48,6 +74,17 @@ fun DevSalesTheme(
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
+
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = businessColors.colorB0DAFA.toArgb()
+            window.navigationBarColor = businessColors.colorB0DAFA.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = ! darkTheme
+        }
+    }
+
 
     MaterialTheme(
         colorScheme = colorScheme,

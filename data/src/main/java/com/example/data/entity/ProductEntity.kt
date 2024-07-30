@@ -9,7 +9,7 @@ data class ProductEntity(
     @PrimaryKey
     val id: Int,
     val name: String,
-    val time: Int,
+    val time: Long,
     val tags: List<String>,
     val amount: Int,
 ) {
