@@ -139,6 +139,8 @@ fun EditDialog(
                         )
                     },
                     colors = TextFieldDefaults.colors(
+                        focusedTextColor = MaterialTheme.colors.black,
+                        unfocusedTextColor = MaterialTheme.colors.black,
                         focusedContainerColor = MaterialTheme.colors.transparent,
                         unfocusedContainerColor = MaterialTheme.colors.transparent,
                         focusedIndicatorColor = MaterialTheme.colors.transparent,
