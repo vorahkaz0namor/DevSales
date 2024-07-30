@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +20,10 @@ import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -47,6 +50,7 @@ import com.example.resourses.theme.TenDp
 import com.example.resourses.theme.TwelveDp
 import com.example.resourses.theme.TwentyTwoSp
 import com.example.resourses.theme.colors
+import kotlinx.coroutines.launch
 
 @Preview(showBackground = true)
 @Composable
@@ -130,10 +134,25 @@ private fun StoreLauncherScreen(
             .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        val listState = rememberLazyListState()
+        var filteredProducts by remember {
+            mutableStateOf(products)
+        }
+        val scope = rememberCoroutineScope()
+        val searchRequest = { text: String ->
+            scope.launch {
+                filteredProducts =
+                  if (text.isNotBlank()) {
+                        filteredProducts.filter {
+                            it.name.contains(other = text, ignoreCase = true)
+                        }
+                    } else
+                          products
+            }
+            Unit
+        }
 
         /**
-         * Screen haeder
+         * Screen header
          */
         Box(
             modifier = Modifier
@@ -152,7 +171,8 @@ private fun StoreLauncherScreen(
          * Search line
          */
         BaseSearchTextField(
-            modifier = Modifier.padding(all = TwelveDp)
+            modifier = Modifier.padding(all = TwelveDp),
+            searchRequest = searchRequest
         )
 
         /**
@@ -160,13 +180,12 @@ private fun StoreLauncherScreen(
          */
         LazyColumn(
             modifier = Modifier.padding(horizontal = TwelveDp),
-            state = listState,
             verticalArrangement = Arrangement.spacedBy(TenDp),
             contentPadding = PaddingValues(
                 vertical = TenDp
             )
         ) {
-            items(items = products) { item ->
+            items(items = filteredProducts) { item ->
                 ItemCard(
                     item = item,
                     onEditClick = { callbackState.openEditDialog(item) },
