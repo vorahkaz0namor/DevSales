@@ -12,7 +12,7 @@ import javax.inject.Inject
 
 interface StoreRepository {
     suspend fun getAllProducts(): Resource<Flow<List<Product>>>
-    suspend fun saveProduct(product: Product): Resource<Boolean>
+    suspend fun saveProduct(products: List<Product>): Resource<Boolean>
     suspend fun deleteProduct(product: Product): Resource<Boolean>
 }
 
@@ -27,9 +27,13 @@ internal class StoreRepositoryImpl @Inject constructor(
             }
         }
 
-    override suspend fun saveProduct(product: Product): Resource<Boolean> =
+    override suspend fun saveProduct(products: List<Product>): Resource<Boolean> =
         handleDAOCall {
-            storeDao.saveProduct(ProductEntity.fromDto(product))
+            storeDao.saveProduct(
+                products.map {
+                    ProductEntity.fromDto(it)
+                }
+            )
             true
         }
 

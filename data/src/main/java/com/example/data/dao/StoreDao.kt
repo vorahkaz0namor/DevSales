@@ -14,7 +14,7 @@ interface StoreDao {
     fun getAllProducts(): Flow<List<ProductEntity>>
 
     @Insert(onConflict = REPLACE)
-    suspend fun saveProduct(product: ProductEntity)
+    suspend fun saveProduct(products: List<ProductEntity>)
 
     @Delete
     suspend fun deleteProduct(product: ProductEntity)

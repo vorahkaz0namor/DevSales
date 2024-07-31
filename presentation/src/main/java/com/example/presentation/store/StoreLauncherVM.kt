@@ -56,7 +56,7 @@ class StoreLauncherVM @Inject constructor(
         viewModelScope.launch {
             activeProduct.value?.let { product ->
                 useCase.saveProduct(
-                    product.copy(amount = newAmount)
+                    listOf(product.copy(amount = newAmount))
                 )
             }
             closeEditDialog()
@@ -86,7 +86,11 @@ class StoreLauncherVM @Inject constructor(
         viewModelScope.launch {
             useCase.getAllProducts().fetchingData { productsFlow ->
                 productsFlow.mapLatest { productsFromFlow ->
-                    _products.value = productsFromFlow
+                    if (productsFromFlow.isEmpty()) {
+                        useCase.saveProduct(Product.initialProductList)
+                    } else {
+                        _products.value = productsFromFlow
+                    }
                 }
                     .stateIn(this)
             }

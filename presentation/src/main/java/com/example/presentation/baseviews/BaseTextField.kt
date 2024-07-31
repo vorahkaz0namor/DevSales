@@ -1,5 +1,6 @@
 package com.example.presentation.baseviews
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -54,6 +55,19 @@ fun BaseSearchTextField(
                 ),
                 contentDescription = null
             )
+        },
+        trailingIcon = {
+            if (inputText.isNotBlank())
+                Icon(
+                    painter = painterResource(
+                        id = R.drawable.ic_clear_24
+                    ),
+                    contentDescription = null,
+                    modifier = Modifier.clickable {
+                        inputText = ""
+                        searchRequest(inputText)
+                    }
+                )
         },
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Text,

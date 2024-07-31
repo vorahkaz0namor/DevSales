@@ -11,7 +11,7 @@ import javax.inject.Inject
 
 interface StoreUseCase {
     suspend fun getAllProducts(): Resource<Flow<List<Product>>>
-    suspend fun saveProduct(product: Product): Resource<Boolean>
+    suspend fun saveProduct(products: List<Product>): Resource<Boolean>
     suspend fun deleteProduct(product: Product): Resource<Boolean>
 }
 
@@ -23,8 +23,8 @@ internal class StoreUseCaseImpl @Inject constructor(
     override suspend fun getAllProducts(): Resource<Flow<List<Product>>> =
         repository.getAllProducts().getQuery(dispatcher)
 
-    override suspend fun saveProduct(product: Product): Resource<Boolean> =
-        repository.saveProduct(product).getQuery(dispatcher)
+    override suspend fun saveProduct(products: List<Product>): Resource<Boolean> =
+        repository.saveProduct(products).getQuery(dispatcher)
 
     override suspend fun deleteProduct(product: Product): Resource<Boolean> =
         repository.deleteProduct(product).getQuery(dispatcher)
