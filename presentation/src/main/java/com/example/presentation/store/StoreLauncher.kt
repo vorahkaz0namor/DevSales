@@ -19,14 +19,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -35,13 +31,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.dto.Product
 import com.example.presentation.baseviews.BaseImageButton
 import com.example.presentation.baseviews.BaseSearchTextField
-import com.example.presentation.utils.exampleProduct
 import com.example.presentation.utils.timeInHumanRepresentation
 import com.example.resourses.R
 import com.example.resourses.theme.AppendingDate
 import com.example.resourses.theme.DevSalesTheme
 import com.example.resourses.theme.EightDp
 import com.example.resourses.theme.EightDpNegative
+import com.example.resourses.theme.EmptyResultBySearchRequest
 import com.example.resourses.theme.InStorehouse
 import com.example.resourses.theme.OutOfStock
 import com.example.resourses.theme.ProductsList
@@ -50,18 +46,13 @@ import com.example.resourses.theme.TenDp
 import com.example.resourses.theme.TwelveDp
 import com.example.resourses.theme.TwentyTwoSp
 import com.example.resourses.theme.colors
-import kotlinx.coroutines.launch
 
 @Preview(showBackground = true)
 @Composable
 private fun StoreMainScreenPreview() {
     DevSalesTheme {
         StoreLauncherScreen(
-            buildList {
-                for (i in 1..5) {
-                    add(exampleProduct)
-                }
-            }
+            products = Product.initialProductList
         )
     }
 }
@@ -70,7 +61,11 @@ private fun StoreMainScreenPreview() {
 @Composable
 private fun ProductCardPreview() {
     DevSalesTheme {
-        ItemCard(item = exampleProduct)
+        ItemCard(
+            item = Product.initialProductList.find {
+                it.id == 8
+            }!!
+        )
     }
 }
 
@@ -78,34 +73,28 @@ private fun ProductCardPreview() {
 internal fun StoreLauncherRoute(
     storeViewModel: StoreLauncherVM,
 ) {
-    val products by storeViewModel.products.collectAsStateWithLifecycle()
-    val openEditDialog by storeViewModel.openEditDialog.collectAsStateWithLifecycle()
-    val openDeleteDialog by storeViewModel.openDeleteDialog.collectAsStateWithLifecycle()
-    val activeProductCurrentAmount by storeViewModel.activeProduct.collectAsStateWithLifecycle()
-    val callbackState = CallbackState(
-        openEditDialog = { storeViewModel.openEditDialog(it) },
-        openDeleteDialog = { storeViewModel.openDeleteDialog(it) },
-        closeEditDialog = { storeViewModel.closeEditDialog() },
-        closeDeleteDialog = { storeViewModel.closeDeleteDialog() },
-        saveProduct = { storeViewModel.saveProduct(it) },
-        deleteProduct = { storeViewModel.deleteProduct() }
+    StoreLauncherScreen(
+        state = storeViewModel.storeState.collectAsStateWithLifecycle().value,
+        products = storeViewModel.products.collectAsStateWithLifecycle().value,
+        openEditDialog = storeViewModel.openEditDialog.collectAsStateWithLifecycle().value,
+        openDeleteDialog = storeViewModel.openDeleteDialog.collectAsStateWithLifecycle().value,
+        currentAmount = storeViewModel.activeProduct.collectAsStateWithLifecycle().value
+            ?.amount ?: 0,
+        callbackState = CallbackState(
+            openEditDialog = { storeViewModel.openEditDialog(it) },
+            openDeleteDialog = { storeViewModel.openDeleteDialog(it) },
+            closeEditDialog = { storeViewModel.closeEditDialog() },
+            closeDeleteDialog = { storeViewModel.closeDeleteDialog() },
+            saveProduct = { storeViewModel.saveProduct(it) },
+            deleteProduct = { storeViewModel.deleteProduct() },
+            searchProducts = { storeViewModel.searchProducts(it) },
+        ),
     )
-
-    storeViewModel.storeState
-        .collectAsStateWithLifecycle().value
-        .StateHandler {
-            StoreLauncherScreen(
-                products = products,
-                openEditDialog = openEditDialog,
-                openDeleteDialog = openDeleteDialog,
-                currentAmount = activeProductCurrentAmount?.amount ?: 0,
-                callbackState = callbackState
-            )
-        }
 }
 
 @Composable
 private fun StoreLauncherScreen(
+    state: StoreState = StoreState.Success,
     products: List<Product> = emptyList(),
     openEditDialog: Boolean = false,
     openDeleteDialog: Boolean = false,
@@ -134,24 +123,6 @@ private fun StoreLauncherScreen(
             .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        var filteredProducts by remember {
-            mutableStateOf(products)
-        }
-        var inputText by remember {
-            mutableStateOf("")
-        }
-        val scope = rememberCoroutineScope()
-        val searchRequest = { text: String ->
-            scope.launch {
-                inputText = text
-                filteredProducts =
-                    products.filter {
-                        it.name.contains(other = text, ignoreCase = true)
-                    }
-            }
-            Unit
-        }
-
         /**
          * Screen header
          */
@@ -173,31 +144,42 @@ private fun StoreLauncherScreen(
          */
         BaseSearchTextField(
             modifier = Modifier.padding(all = TwelveDp),
-            searchRequest = searchRequest
+            searchRequest = callbackState.searchProducts
         )
 
-        /**
-         * Products cards
-         */
-        LazyColumn(
-            modifier = Modifier.padding(horizontal = TwelveDp),
-            verticalArrangement = Arrangement.spacedBy(TenDp),
-            contentPadding = PaddingValues(
-                vertical = TenDp
-            )
-        ) {
-            items(
-                items =
-                if (inputText.isNotBlank())
-                    filteredProducts
-                else
-                    products
-            ) { item ->
-                ItemCard(
-                    item = item,
-                    onEditClick = { callbackState.openEditDialog(item) },
-                    onDeleteClick = { callbackState.openDeleteDialog(item) }
-                )
+        state.StateHandler {
+            if (products.isNotEmpty()) {
+                /**
+                 * Products cards
+                 */
+                LazyColumn(
+                    modifier = Modifier.padding(horizontal = TwelveDp),
+                    verticalArrangement = Arrangement.spacedBy(TenDp),
+                    contentPadding = PaddingValues(
+                        vertical = TenDp
+                    )
+                ) {
+                    items(items = products) { item ->
+                        ItemCard(
+                            item = item,
+                            onEditClick = { callbackState.openEditDialog(item) },
+                            onDeleteClick = { callbackState.openDeleteDialog(item) }
+                        )
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.aligned { _, space ->
+                        (0.25 * space).toInt()
+                    },
+                ) {
+                    Text(
+                        // TODO: There should be empty stock handling
+                        text = EmptyResultBySearchRequest,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
     }

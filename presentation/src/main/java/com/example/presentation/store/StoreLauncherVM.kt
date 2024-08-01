@@ -12,6 +12,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -37,6 +38,7 @@ class StoreLauncherVM @Inject constructor(
     private val _activeProduct = MutableStateFlow<Product?>(null)
     val activeProduct: StateFlow<Product?>
         get() = _activeProduct.asStateFlow()
+    private val filterRequest = MutableStateFlow("")
 
     init {
         loadProducts()
@@ -82,17 +84,33 @@ class StoreLauncherVM @Inject constructor(
         }
     }
 
+    fun searchProducts(text: String) {
+        filterRequest.value = text
+    }
+
     private fun loadProducts() {
         viewModelScope.launch {
-            useCase.getAllProducts().fetchingData { productsFlow ->
-                productsFlow.mapLatest { productsFromFlow ->
-                    if (productsFromFlow.isEmpty()) {
-                        useCase.saveProduct(Product.initialProductList)
-                    } else {
-                        _products.value = productsFromFlow
+            filterRequest.collectLatest {
+                useCase.getAllProducts().fetchingData { productsFlow ->
+                    productsFlow.mapLatest { productsFromFlow ->
+                        if (productsFromFlow.isEmpty()) {
+                            // TODO: Hardcode to create products when DB is empty
+                            useCase.saveProduct(Product.initialProductList)
+                        } else {
+                            _products.value =
+                                /**
+                                 * Filter products depending search request
+                                 */
+                                if (filterRequest.value.isNotBlank())
+                                    productsFromFlow.filter {
+                                        it.name.contains(other = filterRequest.value, ignoreCase = true)
+                                    }
+                                else
+                                    productsFromFlow
+                        }
                     }
+                        .stateIn(this)
                 }
-                    .stateIn(this)
             }
         }
     }

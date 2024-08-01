@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.example.data.dto.Product
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
@@ -46,24 +45,3 @@ internal val timeInHumanRepresentation = { now: Long ->
             .atOffset(OffsetDateTime.now().offset)
             .format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
 }
-
-internal val exampleProduct =
-    Product(
-        id = 1,
-        name = "The Most Incredible Desktop",
-        time = 1633046400000,
-        tags = listOf(
-            "Ноутбук",
-            "Эксклюзив",
-            "Хит",
-            "Распродажа",
-            "Акция",
-            "Ограниченный",
-            "Новый",
-            "Рекомендуем",
-            "Скидка",
-            "Тренд",
-            "Последний шанс",
-        ),
-        amount = 7
-    )

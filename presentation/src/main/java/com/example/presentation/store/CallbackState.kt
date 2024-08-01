@@ -8,5 +8,6 @@ data class CallbackState(
     val closeEditDialog: () -> Unit = {},
     val closeDeleteDialog: () -> Unit = {},
     val saveProduct: (Int) -> Unit = {},
-    val deleteProduct: () -> Unit = {}
+    val deleteProduct: () -> Unit = {},
+    val searchProducts: (String) -> Unit = {},
 )
